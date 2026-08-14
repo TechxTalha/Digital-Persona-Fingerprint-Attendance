@@ -617,6 +617,6 @@ https://hidglobal.github.io/digitalpersona-devices/
 | Fingerprint template generation | ✅ Working |
 | Same-finger matching | ✅ Working |
 | Different-finger rejection | ✅ Working |
-| 1:N identification | 🔄 In development |
-| Production threshold calibration | 🔄 Pending |
-| Full attendance workflow | 🔄 In development |
+| 1:N identification | ✅ Working |
+| Production threshold calibration | ✅ Working |
+| Full attendance workflow | ✅ Working |
