@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   Clock,
@@ -31,7 +31,6 @@ import * as XLSX from 'xlsx';
 
 import AttendanceKiosk from './components/AttendanceKiosk';
 import FingerprintEnrollmentModal from './components/FingerprintEnrollmentModal';
-import { FingerprintReader, SampleFormat } from '@digitalpersona/devices';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const LOCAL_AGENT_KEY = 'alkaram_secret_agent_key_2026';
@@ -458,85 +457,6 @@ export default function App() {
     }
   };
 
-  // --- Live Biometric Terminal (Verification) ---
-  const [liveTerminalStatus, setLiveTerminalStatus] = useState('Idle');
-  const [liveTerminalMessage, setLiveTerminalMessage] = useState(null);
-  const liveReaderRef = useRef(null);
-
-  useEffect(() => {
-    if (activeTab === 'overview') {
-      const reader = new FingerprintReader();
-      liveReaderRef.current = reader;
-      setLiveTerminalStatus('Connecting...');
-      setLiveTerminalMessage(null);
-
-      const onDeviceConnected = () => setLiveTerminalStatus('Scanner connected. Ready.');
-      const onDeviceDisconnected = () => setLiveTerminalStatus('Scanner disconnected.');
-      const onCommunicationFailed = () => setLiveTerminalStatus('Scanner disconnected (ADC unavailable).');
-      
-      const onSamplesAcquired = async (ev) => {
-        setLiveTerminalStatus('Fingerprint captured! Identifying...');
-        try {
-          const res = await fetch(`${API_BASE}/biometrics/identify`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ samples: ev.samples })
-          });
-          const data = await res.json();
-          if (data.success && data.fingerprintTemplateId) {
-            // Found a mock match, now check them in/out
-            const scanRes = await fetch(`${API_BASE}/attendance/scan`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Local-Agent-Key': LOCAL_AGENT_KEY,
-              },
-              body: JSON.stringify({ fingerprintTemplateId: data.fingerprintTemplateId }),
-            });
-            const scanData = await scanRes.json();
-            if (scanData.success) {
-              setLiveTerminalMessage({
-                type: 'success',
-                status: scanData.status,
-                message: `${data.message} - ${scanData.message}`,
-              });
-              fetchEmployees();
-              fetchLogs();
-            } else {
-              setLiveTerminalMessage({ type: 'error', message: scanData.message });
-            }
-          } else {
-            setLiveTerminalMessage({ type: 'error', message: data.message });
-          }
-        } catch (err) {
-          setLiveTerminalMessage({ type: 'error', message: 'Failed to communicate with matching engine.' });
-        } finally {
-          setTimeout(() => {
-            if (liveReaderRef.current) setLiveTerminalStatus('Ready. Place Finger to Check-In/Out');
-          }, 3000);
-        }
-      };
-
-      reader.on("DeviceConnected", onDeviceConnected);
-      reader.on("DeviceDisconnected", onDeviceDisconnected);
-      reader.on("CommunicationFailed", onCommunicationFailed);
-      reader.on("SamplesAcquired", onSamplesAcquired);
-
-      reader.startAcquisition(SampleFormat.Intermediate)
-        .then(() => setLiveTerminalStatus('Ready. Place Finger to Check-In/Out'))
-        .catch(() => setLiveTerminalStatus('Scanner not found or ADC offline.'));
-
-      return () => {
-        reader.stopAcquisition().catch(()=>{});
-        reader.off("DeviceConnected", onDeviceConnected);
-        reader.off("DeviceDisconnected", onDeviceDisconnected);
-        reader.off("CommunicationFailed", onCommunicationFailed);
-        reader.off("SamplesAcquired", onSamplesAcquired);
-        liveReaderRef.current = null;
-      };
-    }
-  }, [activeTab]);
-
   // Direct mock scanner simulation inside web page
   const handleSimulateScan = async (e) => {
     e.preventDefault();
@@ -898,121 +818,63 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Main Panel Content: Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Live Check-In Terminal Widget */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-                  <div className="flex items-center space-x-2.5 pb-3 border-b border-slate-100">
-                    <Fingerprint className="h-5 w-5 text-teal-500" />
-                    <h3 className="font-bold text-slate-800 text-sm tracking-wide">Live Biometric Terminal</h3>
-                  </div>
-
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    The biometric scanner is actively listening. Staff members can place their finger on the U.are.U 4500 device at any time to automatically check-in or check-out.
-                  </p>
-
-                  <div className="flex flex-col items-center justify-center p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
-                    <div className="relative">
-                      {liveTerminalStatus.includes('Ready') || liveTerminalStatus.includes('connected') ? (
-                        <div className="absolute inset-0 bg-teal-200 rounded-full scale-150 animate-ping opacity-30"></div>
-                      ) : null}
-                      <div className={`relative z-10 p-4 rounded-full shadow-inner flex items-center justify-center transition-colors duration-500 ${
-                        liveTerminalStatus.includes('Ready') || liveTerminalStatus.includes('connected')
-                          ? 'bg-teal-500 shadow-[0_0_15px_rgba(20,184,166,0.5)]'
-                          : liveTerminalStatus.includes('offline') || liveTerminalStatus.includes('disconnected')
-                          ? 'bg-slate-300'
-                          : 'bg-indigo-500 animate-pulse'
-                      }`}>
-                        <Fingerprint className="h-10 w-10 text-white" />
-                      </div>
-                    </div>
-                    <div className="text-center space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Terminal Status</span>
-                      <p className={`text-sm font-bold ${
-                        liveTerminalStatus.includes('offline') || liveTerminalStatus.includes('disconnected')
-                          ? 'text-rose-600'
-                          : 'text-teal-700'
-                      }`}>
-                        {liveTerminalStatus}
-                      </p>
-                    </div>
-                  </div>
-
-                  {liveTerminalMessage && (
-                    <div
-                      className={`p-4 rounded-xl text-xs space-y-1.5 border leading-relaxed ${
-                        liveTerminalMessage.type === 'success'
-                          ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
-                          : 'bg-rose-50 border-rose-100 text-rose-800'
-                      }`}
-                    >
-                      <div className="font-bold uppercase tracking-wider flex items-center space-x-1">
-                        {liveTerminalMessage.type === 'success' && <><CheckCircle className="h-3 w-3" /> <span>[ACCESS GRANTED: {liveTerminalMessage.status}]</span></>}
-                        {liveTerminalMessage.type === 'error' && <><AlertCircle className="h-3 w-3" /> <span>[ACCESS DENIED]</span></>}
-                      </div>
-                      <p className="font-medium">{liveTerminalMessage.message}</p>
-                    </div>
-                  )}
+              {/* Currently Present List */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <div className="pb-3 border-b border-slate-100">
+                  <h3 className="font-bold text-slate-800 text-sm tracking-wide">Active On-Duty Personnel</h3>
                 </div>
 
-                {/* Currently Present List */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:col-span-2 space-y-4">
-                  <div className="pb-3 border-b border-slate-100">
-                    <h3 className="font-bold text-slate-800 text-sm tracking-wide">Active On-Duty Personnel</h3>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left">
-                      <thead>
-                        <tr className="border-b border-slate-100">
-                          <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Employee</th>
-                          <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Shift</th>
-                          <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Check-in Time</th>
-                          <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-right">Status</th>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left">
+                    <thead>
+                      <tr className="border-b border-slate-100">
+                        <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Employee</th>
+                        <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Shift</th>
+                        <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Check-in Time</th>
+                        <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {employees.filter((emp) => emp.status === 'Present').length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="py-8 text-center text-xs text-slate-400 font-medium">
+                            No staff members are currently checked in.
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50">
-                        {employees.filter((emp) => emp.status === 'Present').length === 0 ? (
-                          <tr>
-                            <td colSpan="4" className="py-8 text-center text-xs text-slate-400 font-medium">
-                              No staff members are currently checked in.
-                            </td>
-                          </tr>
-                        ) : (
-                          employees
-                            .filter((emp) => emp.status === 'Present')
-                            .map((emp) => {
-                              const matchingLog = logs.find((l) => l.employeeId?._id === emp._id && l.checkOut === null);
-                              return (
-                                <tr key={emp._id} className="text-xs">
-                                  <td className="py-3 font-semibold text-slate-800">
-                                    {emp.name}
-                                    <span className="block text-[10px] text-slate-400 font-normal">{emp.role}</span>
-                                  </td>
-                                  <td className="py-3">
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                                      emp.shift === 'Morning' ? 'bg-orange-50 text-orange-600' :
-                                      emp.shift === 'Evening' ? 'bg-teal-50 text-teal-600' : 'bg-purple-50 text-purple-600'
-                                    }`}>
-                                      {emp.shift}
-                                    </span>
-                                  </td>
-                                  <td className="py-3 font-medium text-slate-500">
-                                    {matchingLog ? new Date(matchingLog.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
-                                  </td>
-                                  <td className="py-3 text-right">
-                                    <span className="inline-flex items-center space-x-1.5 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-100 text-[10px] text-emerald-700 font-bold">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                      <span>On-Duty</span>
-                                    </span>
-                                  </td>
-                                </tr>
-                              );
-                            })
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                      ) : (
+                        employees
+                          .filter((emp) => emp.status === 'Present')
+                          .map((emp) => {
+                            const matchingLog = logs.find((l) => l.employeeId?._id === emp._id && l.checkOut === null);
+                            return (
+                              <tr key={emp._id} className="text-xs">
+                                <td className="py-3 font-semibold text-slate-800">
+                                  {emp.name}
+                                  <span className="block text-[10px] text-slate-400 font-normal">{emp.role}</span>
+                                </td>
+                                <td className="py-3">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                    emp.shift === 'Morning' ? 'bg-orange-50 text-orange-600' :
+                                    emp.shift === 'Evening' ? 'bg-teal-50 text-teal-600' : 'bg-purple-50 text-purple-600'
+                                  }`}>
+                                    {emp.shift}
+                                  </span>
+                                </td>
+                                <td className="py-3 font-medium text-slate-500">
+                                  {matchingLog ? new Date(matchingLog.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
+                                </td>
+                                <td className="py-3 text-right">
+                                  <span className="inline-flex items-center space-x-1.5 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-100 text-[10px] text-emerald-700 font-bold">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>On-Duty</span>
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
