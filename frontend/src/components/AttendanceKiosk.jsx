@@ -103,26 +103,28 @@ export default function AttendanceKiosk() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[500px] h-full p-8">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col transform transition-all duration-500">
+    <div className="flex flex-col items-center justify-center min-h-[400px] sm:min-h-[500px] h-full p-3 sm:p-6 lg:p-8">
+      <div className="w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col transform transition-all duration-500">
         
         {/* Header */}
-        <div className="px-8 py-6 bg-slate-900 flex justify-between items-center text-white">
+        <div className="px-4 sm:px-8 py-4 sm:py-6 bg-slate-900 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 text-white">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Biometric Kiosk</h2>
-            <p className="text-slate-400 font-medium mt-1">Automated Attendance System</p>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Biometric Kiosk</h2>
+            <p className="text-slate-400 font-medium mt-1 text-sm sm:text-base">Automated Attendance System</p>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold tracking-tighter flex items-center justify-end space-x-2">
-              <Clock className="h-6 w-6 text-teal-400" />
+          <div className="sm:text-right">
+            <div className="text-2xl sm:text-3xl font-bold tracking-tighter flex items-center sm:justify-end space-x-2">
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-teal-400 shrink-0" />
               <span>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             </div>
-            <p className="text-slate-400 font-medium text-sm mt-1">{time.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p className="text-slate-400 font-medium text-xs sm:text-sm mt-1">
+              {time.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+            </p>
           </div>
         </div>
 
         {/* Main Display Area */}
-        <div className="p-12 flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden">
+        <div className="p-6 sm:p-10 lg:p-12 flex flex-col items-center justify-center min-h-[280px] sm:min-h-[350px] relative overflow-hidden">
           
           {/* Background Ambient Glow */}
           <div className={`absolute inset-0 opacity-10 transition-colors duration-700 ${
@@ -132,7 +134,7 @@ export default function AttendanceKiosk() {
           }`} />
 
           {/* Icon Container */}
-          <div className="relative mb-8">
+          <div className="relative mb-6 sm:mb-8">
             {status === 'processing' && (
               <div className="absolute inset-0 bg-amber-400 rounded-full scale-[1.5] animate-ping opacity-20"></div>
             )}
@@ -140,22 +142,22 @@ export default function AttendanceKiosk() {
               <div className="absolute inset-0 bg-emerald-400 rounded-full scale-[2] animate-ping opacity-20"></div>
             )}
             
-            <div className={`relative z-10 flex items-center justify-center h-40 w-40 rounded-full shadow-2xl transition-all duration-500 ${
+            <div className={`relative z-10 flex items-center justify-center h-28 w-28 sm:h-40 sm:w-40 rounded-full shadow-2xl transition-all duration-500 ${
               status === 'success' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 scale-110' :
               status === 'error' ? 'bg-gradient-to-br from-rose-400 to-rose-600' :
               status === 'processing' ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
               'bg-gradient-to-br from-slate-700 to-slate-900'
             }`}>
-              {status === 'success' ? <CheckCircle className="h-20 w-20 text-white" /> :
-               status === 'error' ? <AlertCircle className="h-20 w-20 text-white" /> :
-               status === 'processing' ? <RefreshCw className="h-20 w-20 text-white animate-spin" /> :
-               <Fingerprint className="h-20 w-20 text-white animate-pulse" />}
+              {status === 'success' ? <CheckCircle className="h-14 w-14 sm:h-20 sm:w-20 text-white" /> :
+               status === 'error' ? <AlertCircle className="h-14 w-14 sm:h-20 sm:w-20 text-white" /> :
+               status === 'processing' ? <RefreshCw className="h-14 w-14 sm:h-20 sm:w-20 text-white animate-spin" /> :
+               <Fingerprint className="h-14 w-14 sm:h-20 sm:w-20 text-white animate-pulse" />}
             </div>
           </div>
 
           {/* Status Messaging */}
-          <div className="text-center z-10 space-y-4">
-            <h1 className={`text-4xl font-extrabold tracking-tight transition-colors duration-500 ${
+          <div className="text-center z-10 space-y-3 sm:space-y-4 px-1">
+            <h1 className={`text-2xl sm:text-4xl font-extrabold tracking-tight transition-colors duration-500 break-words ${
               status === 'success' ? 'text-emerald-600' :
               status === 'error' ? 'text-rose-600' :
               status === 'processing' ? 'text-amber-600' : 'text-slate-800'
@@ -166,7 +168,7 @@ export default function AttendanceKiosk() {
                'Ready for Scan'}
             </h1>
             
-            <p className="text-lg font-medium text-slate-500 max-w-md mx-auto">
+            <p className="text-sm sm:text-lg font-medium text-slate-500 max-w-md mx-auto">
               {message}
             </p>
             
@@ -184,9 +186,9 @@ export default function AttendanceKiosk() {
             )}
 
             {employeeInfo && status === 'success' && (
-              <div className="mt-6 inline-block bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-3">
-                <p className="text-emerald-800 font-semibold">{employeeInfo.role}</p>
-                <p className="text-emerald-600 text-sm font-medium">Shift: {employeeInfo.shift}</p>
+              <div className="mt-4 sm:mt-6 inline-block bg-emerald-50 border border-emerald-100 rounded-2xl px-4 sm:px-6 py-3">
+                <p className="text-emerald-800 font-semibold text-sm sm:text-base">{employeeInfo.role}</p>
+                <p className="text-emerald-600 text-xs sm:text-sm font-medium">Shift: {employeeInfo.shift}</p>
               </div>
             )}
           </div>
@@ -194,9 +196,9 @@ export default function AttendanceKiosk() {
         </div>
 
         {/* Footer */}
-        <div className="bg-slate-50 py-4 px-8 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+        <div className="bg-slate-50 py-3 sm:py-4 px-4 sm:px-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-1 text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
           <span>DigitalPersona Core</span>
-          <span>SourceAFIS Java Engine Engine</span>
+          <span>SourceAFIS Java Engine</span>
         </div>
       </div>
     </div>

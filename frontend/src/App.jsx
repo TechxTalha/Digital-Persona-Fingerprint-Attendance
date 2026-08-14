@@ -22,7 +22,9 @@ import {
   LogOut,
   User,
   ZapOff,
-  Download
+  Download,
+  Menu,
+  X,
 } from 'lucide-react';
 
 import jsPDF from 'jspdf';
@@ -48,6 +50,7 @@ export default function App() {
 
   // Main App States
   const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [logs, setLogs] = useState([]);
   const [payrolls, setPayrolls] = useState([]);
@@ -533,8 +536,8 @@ export default function App() {
   // Render Login view if not authenticated
   if (!admin) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 antialiased font-sans">
-        <div className="w-full max-w-md bg-slate-800 rounded-3xl border border-slate-700/50 shadow-2xl p-8 space-y-6 relative overflow-hidden">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 sm:p-6 antialiased font-sans">
+        <div className="w-full max-w-md bg-slate-800 rounded-3xl border border-slate-700/50 shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden">
           {/* Decorative backdrop gradients */}
           <div className="absolute -top-12 -right-12 h-36 w-36 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
           <div className="absolute -bottom-12 -left-12 h-36 w-36 bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -612,26 +615,55 @@ export default function App() {
     );
   }
 
+  const navigateTo = (tab) => {
+    setActiveTab(tab);
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="flex h-screen bg-[#f1f5f9] text-slate-800 antialiased overflow-hidden">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[1px] md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-200 flex flex-col justify-between shrink-0 shadow-lg z-10">
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] bg-slate-900 text-slate-200 flex flex-col justify-between shrink-0 shadow-lg transition-transform duration-300 ease-out md:static md:z-10 md:max-w-none md:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div>
           {/* Logo Brand Header */}
-          <div className="p-6 border-b border-slate-800 flex items-center space-x-3">
-            <div className="p-2 bg-teal-500 rounded-lg text-white">
-              <Activity className="h-6 w-6 animate-pulse" />
+          <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between gap-3">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="p-2 bg-teal-500 rounded-lg text-white shrink-0">
+                <Activity className="h-6 w-6 animate-pulse" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-bold text-lg text-white tracking-wide leading-none">AlKaram</h1>
+                <span className="text-xs text-slate-400 font-medium tracking-wider">HOSPITAL SYSTEM</span>
+              </div>
             </div>
-            <div>
-              <h1 className="font-bold text-lg text-white tracking-wide leading-none">AlKaram</h1>
-              <span className="text-xs text-slate-400 font-medium tracking-wider">HOSPITAL SYSTEM</span>
-            </div>
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(false)}
+              className="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              aria-label="Close sidebar"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-4 space-y-2 mt-4">
+          <nav className="p-4 space-y-2 mt-2 sm:mt-4">
             <button
-              onClick={() => setActiveTab('overview')}
+              onClick={() => navigateTo('overview')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-150 text-sm font-medium ${
                 activeTab === 'overview' ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
               }`}
@@ -640,7 +672,7 @@ export default function App() {
               <span>Overview Panel</span>
             </button>
             <button
-              onClick={() => setActiveTab('employees')}
+              onClick={() => navigateTo('employees')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-150 text-sm font-medium ${
                 activeTab === 'employees' ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
               }`}
@@ -649,7 +681,7 @@ export default function App() {
               <span>Staff Directory</span>
             </button>
             <button
-              onClick={() => setActiveTab('logs')}
+              onClick={() => navigateTo('logs')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-150 text-sm font-medium ${
                 activeTab === 'logs' ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
               }`}
@@ -658,7 +690,7 @@ export default function App() {
               <span>Biometric Logs</span>
             </button>
             <button
-              onClick={() => setActiveTab('payroll')}
+              onClick={() => navigateTo('payroll')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition duration-150 text-sm font-medium ${
                 activeTab === 'payroll' ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
               }`}
@@ -667,7 +699,7 @@ export default function App() {
               <span>Payroll Sheets</span>
             </button>
             <button
-              onClick={() => setActiveTab('kiosk')}
+              onClick={() => navigateTo('kiosk')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-300 ${
                 activeTab === 'kiosk' ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
               }`}
@@ -693,13 +725,13 @@ export default function App() {
 
           {/* Admin Profiler and Logout */}
           <div className="bg-slate-850 rounded-xl p-3 flex items-center justify-between border border-slate-800">
-            <div className="flex items-center space-x-2 text-xs">
+            <div className="flex items-center space-x-2 text-xs min-w-0">
               <User className="h-4 w-4 text-teal-400 shrink-0" />
               <span className="font-semibold text-slate-300 truncate max-w-[120px]">{admin.username}</span>
             </div>
             <button
               onClick={handleLogout}
-              className="text-slate-500 hover:text-rose-400 transition p-1 hover:bg-slate-800 rounded-lg"
+              className="text-slate-500 hover:text-rose-400 transition p-1 hover:bg-slate-800 rounded-lg shrink-0"
               title="Logout session"
             >
               <LogOut className="h-4 w-4" />
@@ -714,16 +746,24 @@ export default function App() {
       </aside>
 
       {/* Main Workspace */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 shadow-sm">
-          <div className="flex items-center space-x-4">
-            <h2 className="font-semibold text-lg text-slate-800 capitalize">{activeTab} Manager</h2>
-            {loading && <RefreshCw className="h-4 w-4 animate-spin text-teal-500" />}
+        <header className="min-h-16 h-auto py-3 sm:py-0 sm:h-16 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 shrink-0 shadow-sm">
+          <div className="flex items-center space-x-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden p-2 -ml-1 rounded-xl text-slate-600 hover:bg-slate-100 border border-slate-200 shrink-0"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <h2 className="font-semibold text-base sm:text-lg text-slate-800 capitalize truncate">{activeTab} Manager</h2>
+            {loading && <RefreshCw className="h-4 w-4 animate-spin text-teal-500 shrink-0" />}
           </div>
 
           {/* Right Controls */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={() => {
                 fetchEmployees();
@@ -736,23 +776,24 @@ export default function App() {
                 fetchPayrolls();
                 triggerAlert('success', 'Data refreshed successfully');
               }}
-              className="flex items-center space-x-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-full text-xs font-bold border border-indigo-200 transition-colors"
+              className="flex items-center space-x-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold border border-indigo-200 transition-colors"
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              <span>Refresh Data</span>
+              <span className="hidden sm:inline">Refresh Data</span>
             </button>
-            <div className="flex items-center space-x-2 bg-slate-100 rounded-full px-3.5 py-1 text-xs font-semibold text-slate-600 border border-slate-200">
+            <div className="hidden sm:flex items-center space-x-2 bg-slate-100 rounded-full px-3.5 py-1 text-xs font-semibold text-slate-600 border border-slate-200">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span>Terminal Bridge Online</span>
+              <span className="hidden md:inline">Terminal Bridge Online</span>
+              <span className="md:hidden">Online</span>
             </div>
           </div>
         </header>
 
         {/* Contents Wrapper */}
-        <div className="flex-1 overflow-y-auto p-8 relative">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative">
           
           {/* Action Alerts */}
           {alert && (
@@ -774,58 +815,58 @@ export default function App() {
 
           {/* TAB 1: OVERVIEW PANEL */}
           {activeTab === 'overview' && (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-                  <div className="space-y-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+                  <div className="space-y-1 min-w-0">
                     <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Registered Staff</span>
-                    <p className="text-3xl font-extrabold text-slate-800">{employees.length}</p>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-800">{employees.length}</p>
                   </div>
-                  <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl border border-teal-100">
+                  <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl border border-teal-100 shrink-0">
                     <Users className="h-6 w-6" />
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-                  <div className="space-y-1">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+                  <div className="space-y-1 min-w-0">
                     <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Present Now</span>
-                    <p className="text-3xl font-extrabold text-slate-800">{activeStaffCount}</p>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-800">{activeStaffCount}</p>
                   </div>
-                  <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100">
+                  <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 shrink-0">
                     <Activity className="h-6 w-6" />
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-                  <div className="space-y-1">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+                  <div className="space-y-1 min-w-0">
                     <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Hours Tracked</span>
-                    <p className="text-3xl font-extrabold text-slate-800">{parseFloat(totalHoursWorked.toFixed(1))}</p>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-800">{parseFloat(totalHoursWorked.toFixed(1))}</p>
                   </div>
-                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100">
+                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 shrink-0">
                     <Clock className="h-6 w-6" />
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
-                  <div className="space-y-1">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+                  <div className="space-y-1 min-w-0">
                     <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Disbursed Wages</span>
-                    <p className="text-3xl font-extrabold text-slate-800">₨ {totalSalariesPaid.toLocaleString()}</p>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-800 truncate">₨ {totalSalariesPaid.toLocaleString()}</p>
                   </div>
-                  <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100">
+                  <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 shrink-0">
                     <DollarSign className="h-6 w-6" />
                   </div>
                 </div>
               </div>
 
               {/* Currently Present List */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
                 <div className="pb-3 border-b border-slate-100">
                   <h3 className="font-bold text-slate-800 text-sm tracking-wide">Active On-Duty Personnel</h3>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
+                <div className="overflow-x-auto -mx-1 px-1">
+                  <table className="w-full min-w-[520px] border-collapse text-left">
                     <thead>
                       <tr className="border-b border-slate-100">
                         <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Employee</th>
@@ -882,9 +923,9 @@ export default function App() {
 
           {/* TAB 2: STAFF DIRECTORY */}
           {activeTab === 'employees' && (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {/* Form Side */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-fit space-y-5">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 h-fit space-y-5">
                 <div className="flex items-center space-x-2.5 pb-3 border-b border-slate-100">
                   <UserPlus className="h-5 w-5 text-teal-500" />
                   <h3 className="font-bold text-slate-800 text-sm tracking-wide">
@@ -917,7 +958,7 @@ export default function App() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-slate-500">Role</label>
                       <select
@@ -958,7 +999,7 @@ export default function App() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-slate-500">Shift</label>
                       <select
@@ -996,14 +1037,14 @@ export default function App() {
               </div>
 
               {/* Table List Side */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 xl:col-span-2 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 xl:col-span-2 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
                   <h3 className="font-bold text-slate-800 text-sm tracking-wide font-sans">Active Employees Directory</h3>
                   <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{employees.length} registered</span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
+                <div className="overflow-x-auto -mx-1 px-1">
+                  <table className="w-full min-w-[720px] border-collapse text-left">
                     <thead>
                       <tr className="border-b border-slate-100">
                         <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Employee</th>
@@ -1082,10 +1123,10 @@ export default function App() {
 
           {/* TAB 3: ATTENDANCE LOGS */}
           {activeTab === 'logs' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Filter Panel */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <form onSubmit={handleApplyLogFilters} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
+                <form onSubmit={handleApplyLogFilters} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-500">Employee</label>
                     <select
@@ -1153,13 +1194,13 @@ export default function App() {
               </div>
 
               {/* Logs Table */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                  <div className="flex items-center space-x-3">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <h3 className="font-bold text-slate-800 text-sm tracking-wide">Biometric Session Activity</h3>
                     <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{logs.length} sessions tracked</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={handleExportExcel}
                       className="flex items-center space-x-1.5 bg-green-50 hover:bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-[11px] font-bold border border-green-200 transition-colors"
@@ -1177,8 +1218,8 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
+                <div className="overflow-x-auto -mx-1 px-1">
+                  <table className="w-full min-w-[800px] border-collapse text-left">
                     <thead>
                       <tr className="border-b border-slate-100">
                         <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Employee</th>
@@ -1246,9 +1287,9 @@ export default function App() {
 
           {/* TAB 4: PAYROLL sheets */}
           {activeTab === 'payroll' && (
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {/* Generate Salary Card */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 h-fit space-y-5">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 h-fit space-y-5">
                 <div className="flex items-center space-x-2.5 pb-3 border-b border-slate-100">
                   <DollarSign className="h-5 w-5 text-teal-500" />
                   <h3 className="font-bold text-slate-800 text-sm tracking-wide">Generate Monthly Salary</h3>
@@ -1293,14 +1334,14 @@ export default function App() {
               </div>
 
               {/* Payroll History Grid */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 xl:col-span-2 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 xl:col-span-2 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
                   <h3 className="font-bold text-slate-800 text-sm tracking-wide">Salary Disbursement History</h3>
                   <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{payrolls.length} payroll sheets</span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
+                <div className="overflow-x-auto -mx-1 px-1">
+                  <table className="w-full min-w-[720px] border-collapse text-left">
                     <thead>
                       <tr className="border-b border-slate-100">
                         <th className="py-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Employee</th>

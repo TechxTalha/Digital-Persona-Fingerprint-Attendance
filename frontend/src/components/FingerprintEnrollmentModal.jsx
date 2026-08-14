@@ -154,23 +154,23 @@ export default function FingerprintEnrollmentModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-sm max-h-[95vh] overflow-y-auto flex flex-col">
         
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div>
-            <h3 className="font-bold text-slate-800 text-lg tracking-tight">Register Fingerprint</h3>
-            {employee && <p className="text-xs text-slate-500 font-medium">For: {employee.name}</p>}
+        <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 sticky top-0">
+          <div className="min-w-0 pr-2">
+            <h3 className="font-bold text-slate-800 text-base sm:text-lg tracking-tight">Register Fingerprint</h3>
+            {employee && <p className="text-xs text-slate-500 font-medium truncate">For: {employee.name}</p>}
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full transition-colors shrink-0">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-8 flex flex-col items-center justify-center space-y-6">
-          <div className="relative flex items-center justify-center h-32 w-32">
+        <div className="p-6 sm:p-8 flex flex-col items-center justify-center space-y-5 sm:space-y-6">
+          <div className="relative flex items-center justify-center h-28 w-28 sm:h-32 sm:w-32">
             {isComplete ? (
               <div className="absolute inset-0 bg-emerald-100 rounded-full scale-150 animate-ping opacity-20"></div>
             ) : errorMsg ? (
@@ -179,7 +179,7 @@ export default function FingerprintEnrollmentModal({
               <div className="absolute inset-0 bg-indigo-100 rounded-full scale-[1.3] animate-pulse opacity-50"></div>
             )}
             
-            <div className={`relative z-10 flex items-center justify-center h-24 w-24 rounded-full shadow-inner ${
+            <div className={`relative z-10 flex items-center justify-center h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-inner ${
               isComplete ? 'bg-emerald-500' : errorMsg ? 'bg-rose-500' : isProcessing ? 'bg-amber-500' : 'bg-indigo-600'
             } transition-colors duration-500`}>
               {isComplete ? (
@@ -195,8 +195,8 @@ export default function FingerprintEnrollmentModal({
           </div>
 
           {/* Status */}
-          <div className="text-center space-y-2">
-            <h4 className={`font-extrabold text-xl ${
+          <div className="text-center space-y-2 px-1">
+            <h4 className={`font-extrabold text-lg sm:text-xl ${
               isComplete ? 'text-emerald-600' : errorMsg ? 'text-rose-600' : 'text-slate-800'
             }`}>
               {isComplete ? 'Success!' : errorMsg ? 'Enrollment Failed' : isProcessing ? 'Verifying...' : 'Scan 3 Times'}
@@ -233,10 +233,10 @@ export default function FingerprintEnrollmentModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <div className="px-5 sm:px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end sticky bottom-0">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl shadow-sm transition-all"
+            className="w-full sm:w-auto px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl shadow-sm transition-all"
           >
             {isComplete ? 'Close' : 'Cancel'}
           </button>
